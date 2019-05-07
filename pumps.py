@@ -10,14 +10,14 @@ def prnt(msg):
     print(msg)
 
 
-class TinyG:
+class PumpController:
     
-    def __init__(self, callback=prnt, port='COM3'):
-        self.ser = serial.Serial(port, baudrate=115200, timeout=1)
+    def __init__(self, callback=prnt, port='COM7'):
+        self.ser = serial.Serial(port, baudrate=9600, timeout=1)
         if self.ser.isOpen():
-           print('TinyG: opened on %s' % port)
+           print('MForce: opened on %s' % port)
         else:
-            print('TinyG: could not open on %s' % port)
+            print('MForce: could not open on %s' % port)
             return
 
         self.q = queue.Queue()
@@ -67,20 +67,20 @@ class TinyG:
             except Exception as e:
                 if not self.running:
                     return
-                print('TinyG read error:')
+                print('MForce read error:')
                 traceback.print_exc()
         
     def close(self):
         self.running = False
         self.ser.close()
         if not self.ser.isOpen():
-            print('TinyG: serial port closed')
+            print('MForce: serial port closed')
         else:
-            print('TinyG: could not close serial port')
+            print('MForce: could not close serial port')
 
 
 if __name__ == '__main__':
-    tg = TinyG()
+    pc = PumpController()
 
 
 

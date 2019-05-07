@@ -1,7 +1,7 @@
 import time
 import json
 
-FEED = 19 # in/min
+FEED = 40 # in/min
 
 INCH_PER_SPACE = 0.394
 
