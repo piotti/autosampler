@@ -10,14 +10,14 @@ def xy_to_gxgy(x, y):
     Given Cartesian (x, y), return (x, y) position of gantry
     as (gx, gy) tuple.
     '''
-    return (-0.5 * (x + y), 0.5 * (x - y))
+    return (0.5 * (x + y), 0.5 * (x - y))
 
 def gxgy_to_xy(gx, gy):
     '''
     Given gantry coordinates (gx, gy), return (x, y) Cartesian coordinates
     as (x, y) tuple.
     '''
-    return (gy - gx, -gx - gy)
+    return (gx + gy, gx - gy)
 
 def gxgy_to_cr(gx, gy):
     '''
@@ -87,13 +87,13 @@ class GantryController:
         self.move_to_xy(dest_x, dest_y)
 
     def jog_left(self):
-        dest_x = self.x + 100
-        dest_y = self.y + 100
+        dest_x = self.x - 100
+        dest_y = self.y - 100
         self.move_to_xy(dest_x, dest_y)
 
     def jog_right(self):
-        dest_x = self.x - 100
-        dest_y = self.y - 100
+        dest_x = self.x + 100
+        dest_y = self.y + 100
         self.move_to_xy(dest_x, dest_y)
 
     def stop_jog(self):
@@ -113,6 +113,12 @@ class GantryController:
 
     def update_cr(self):
         self.c, self.r = xy_to_cr(self.x, self.y)
+
+    def zero_xy(self):
+        self.tg.send_gcode('g28.3 x0 y0')
+
+    def goto(self, c, r):
+        self.move_to_cr(c, r)
 
 
     def msg_received(self, msg):

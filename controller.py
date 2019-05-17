@@ -1,4 +1,4 @@
-# from mforce import PumpController
+from pumps import PumpController
 from tinyg import TinyG
 from gantry import GantryController
 
@@ -14,6 +14,7 @@ class Controller:
     def __init__(self, gantry_cb):
         # self.pumps = PumpController()
         self.tg = TinyG()
+        self.pc = PumpController(print)
         self.gantry = GantryController(self.tg, gantry_cb)
 
   
@@ -37,6 +38,14 @@ class Controller:
         self.gantry.step_left()
     def step_right(self):
         self.gantry.step_right()
+    def zero_xy(self):
+        self.gantry.zero_xy()
+    def on_goto(self, c, r):
+        self.gantry.goto(c, r)
+
+    # Pumps
+    def setFlow(self, addr, rate, volume):
+        self.pc.setFlow(addr, rate, volume)
 
 
     # Valve
@@ -48,8 +57,7 @@ class Controller:
 
 
     def close(self):
-        pass
-        # self.pumps.close()
+        self.pc.close()
         self.gantry.close()
 
 

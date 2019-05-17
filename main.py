@@ -5,18 +5,22 @@ from controller import Controller
 
 import graph
 
-FONT = ('TkDefaultFont', 20)
+import process
+
+# 1.5 ML dead vol
+
+FONT = ('TkDefaultFont', 16)
 
 
 class Button(tk.Button):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.configure(font=FONT)
+        # self.configure(font=FONT)
 
 class Label(tk.Label):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.configure(font=FONT)
+        # self.configure(font=FONT)
 
 
 
@@ -56,6 +60,14 @@ class Window(tk.Frame):
         Button(motion_frame, text='\u21a6', command=self.on_step_right).grid(row=2, column=3)
         Button(motion_frame, text='\u21a4', command=self.on_step_left).grid(row=2, column=1)
 
+        Button(motion_frame, text='Zero', command=self.on_zero).grid(row=3, column=0, columnspan=2)
+
+        self.x_input = Entry(motion_frame, width=2)
+        self.x_input.grid(row=3, column=3)
+        self.y_input = Entry(motion_frame, width=2)
+        self.y_input.grid(row=3, column=4)
+        Button(motion_frame, text='Goto', command=self.on_goto).grid(row=4, column=3, columnspan=2)
+
         # Position Frame
         pos_frame = Frame(master)
         pos_frame.grid(row=0, column=2)
@@ -77,14 +89,39 @@ class Window(tk.Frame):
         self.waste_btn.bind('<ButtonPress-1>', self.on_waste_btn)
         self.waste_btn.pack(anchor=W)
 
+        # Pump Frame
+        pump_frame = Frame(master)
+        pump_frame.grid(row=1, column=0)
+        self.pump_a_fr = Entry(pump_frame, width=3)
+        self.pump_a_fr.grid(row=0, column=0)
+        Button(pump_frame, text='FR A', command=self.on_set_fr_a).grid(row=0, column=1)
+        Button(pump_frame, text='Stop', command=self.on_stop_pump_a).grid(row=0, column=2)
+        self.pump_b_fr = Entry(pump_frame, width=3)
+        self.pump_b_fr.grid(row=1, column=0)
+        Button(pump_frame, text='FR B', command=self.on_set_fr_b).grid(row=1, column=1)
+        Button(pump_frame, text='Stop', command=self.on_stop_pump_b).grid(row=1, column=2)
+
+
+
+        # Process Frame
+        process_frame = Frame(master)
+        process_frame.grid(row=1, column=2)
+        Button(process_frame, text='Start Process', command=self.on_start_process).grid(row=0, column=0)
+        Button(process_frame, text='Stop Process', command=self.on_stop_process).grid(row=1, column=0)
+
 
         # Graph Frame
-        graph_frame = Frame(master)
-        graph_frame.grid(row=1, column=0, columnspan=3)
-        self.graph = graph.Graph(graph_frame)
+        # graph_frame = Frame(master)
+        # graph_frame.grid(row=2, column=0, columnspan=3)
+        # self.graph = graph.Graph(graph_frame)
 
 
         self.c = Controller(self.on_position_update)
+
+
+
+        # Create process
+        self.p = process.IntervalStep(self.c, 30)
         
 
 
@@ -120,6 +157,23 @@ class Window(tk.Frame):
         print('step right pressed')
         self.c.step_right()
 
+    def on_zero(self):
+        self.c.zero_xy()
+
+    def parse_entry_field(self, field, typ):
+        x = field.get()
+        if not x.strip():
+            x = 0
+            field.delete(0,END)
+            field.insert(0, '0')
+        else:
+            x = typ(x)
+        return x
+
+    def on_goto(self):
+        x = self.parse_entry_field(self.x_input, float)
+        y = self.parse_entry_field(self.y_input, float)
+        self.c.on_goto(x, y)
 
     def set_valve_state(self, collecting):
         colors = {True: 'green3', False: 'gray'}
@@ -138,10 +192,37 @@ class Window(tk.Frame):
         self.col_label['text'] = '%.2f' % c
         self.row_label['text'] = '%.2f' % r
 
+    def on_set_fr_a(self):
+        fr = self.parse_entry_field(self.pump_a_fr, float)
+        self.c.setFlow('', fr, 625.4)
+
+    def on_set_fr_b(self):
+        fr = self.parse_entry_field(self.pump_b_fr, float)
+        print("pump b not connected")
+        # self.c.setFlow('', fr, 10000)
+
+    def on_stop_pump_a(self):
+        self.c.setFlow('', 0, 625.4)
+
+    def on_stop_pump_b(self):
+        print("pump b not connected")
+
+
+
+
+
+
+    def on_start_process(self):
+        self.p.start()
+
+    def on_stop_process(self):
+        self.p.stop()
+
 
 
     def close(self):
         print('Closing...')
+        self.p.stop()
         self.c.close()
         self.master.destroy()
 
@@ -155,5 +236,5 @@ if __name__=='__main__':
 
     root = tk.Tk()
     app = Window(root)
-    ani = graph.animation.FuncAnimation(graph.f, graph.animate, interval=1000)
+    # ani = graph.animation.FuncAnimation(graph.f, graph.animate, interval=1000)
     app.mainloop()
